@@ -1388,7 +1388,13 @@ func (d *Debugger) collectBreakpointInformation(apiThread *api.Thread, thread pr
 
 	s, err := proc.GoroutineScope(tgt, thread)
 	if err != nil {
-		return err
+		var errNoGoroutine proc.ErrNoGoroutine
+		if errors.As(err, &errNoGoroutine) {
+			s, err = proc.ThreadScope(tgt, thread)
+		}
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(bp.Variables) > 0 {
@@ -2346,7 +2352,12 @@ func (d *Debugger) TargetGroup() *proc.TargetGroup {
 }
 
 func (d *Debugger) BuildID() string {
-	return d.target.Selected.BinInfo().BuildID
+	loc, err := d.target.Selected.CurrentThread().Location()
+	if err != nil {
+		return ""
+	}
+	img := d.target.Selected.BinInfo().PCToImage(loc.PC)
+	return img.BuildID
 }
 
 func (d *Debugger) AttachPid() int {
