@@ -341,9 +341,6 @@ func TestGeneratedDoc(t *testing.T) {
 		//TODO(alexsaezm): finish CI integration
 		t.Skip("skipping test on Linux/PPC64LE in CI")
 	}
-	if goversion.VersionAfterOrEqual(runtime.Version(), 1, 24) {
-		t.Skip("disabled due to export format changes")
-	}
 	// Checks gen-cli-docs.go
 	var generatedBuf bytes.Buffer
 	commands := terminal.DebugCommands(nil)
@@ -1466,6 +1463,9 @@ func TestCapsLock(t *testing.T) {
 	args := []string{"-packages", "./cmd/dlv"}
 	if goos == "linux" && goarch == "ppc64le" {
 		args = append([]string{"-buildtags", "exp.linuxppc64le"}, args...)
+	}
+	if goos == "windows" && goarch == "arm64" {
+		args = append([]string{"-buildtags", "exp.winarm64"}, args...)
 	}
 
 	cmd := exec.Command("capslock", args...)
